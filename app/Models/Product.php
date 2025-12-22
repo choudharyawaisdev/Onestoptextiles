@@ -13,6 +13,6 @@ class Product extends Model
     'category',
     'material',
     'is_active'
-];
+    ];
 
 }
