@@ -11,24 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('product_details', function (Blueprint $table) {
+        Schema::create('product_variations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
-            $table->string('size')->nullable();
-            $table->string('width')->nullable();
-            $table->string('length')->nullable();
-            $table->string('unit')->default('inch');
+            $table->unsignedBigInteger('product_id');
+            $table->string('size')->nullable(); // can store "71x95" or any custom size
             $table->string('color')->nullable();
             $table->decimal('price', 10, 2);
-            $table->string('currency')->default('USD');
-            $table->json('images')->nullable();
-            $table->integer('stock')->default(0);
             $table->decimal('weight', 8, 2)->nullable();
-            $table->boolean('is_custom_size')->default(false);
-            $table->text('notes')->nullable();
+            $table->string('finish')->nullable(); // finish/elastic
+            $table->text('description')->nullable(); // variant notes
+            $table->json('images')->nullable(); // variant images
             $table->timestamps();
         });
-
     }
 
     /**

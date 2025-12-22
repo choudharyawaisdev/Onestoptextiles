@@ -9,10 +9,17 @@ class Product extends Model
    protected $fillable = [
     'name',
     'slug',
+    'main_image',
     'description',
-    'category',
     'material',
-    'is_active'
     ];
 
+    protected $casts = [
+        'main_image' => 'array',
+    ];
+    public function variations()
+    {
+        return $this->hasMany(ProductVariation::class);
+    }
+    
 }

@@ -1,8 +1,14 @@
 <?php
 
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
+
+
+Route::resource('product', ProductController::class);
+
+
 
 Route::get("/index", [DashboardController::class,"index"])->name("home");
 Route::get("/success", [DashboardController::class,"success"])->name("success");

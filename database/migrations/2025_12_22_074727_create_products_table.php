@@ -13,12 +13,10 @@ return new class extends Migration
     {
        Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->string('name');                 // Blackout Curtain
+            $table->string('name');                 
             $table->string('slug')->unique();
-            $table->text('description')->nullable();
-            $table->string('category')->nullable(); // curtain, blanket
-            $table->string('material')->nullable(); // cotton, polyester
-            $table->boolean('is_active')->default(true);
+            $table->string('material')->nullable();
+            $table->string('main_image')->nullable(); // main product image
             $table->timestamps();
         });
     }

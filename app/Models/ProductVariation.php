@@ -4,26 +4,29 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ProductDetail extends Model
+class ProductVariation extends Model
 {
    protected $fillable = [
     'product_id',
     'size',
     'width',
     'length',
-    'unit',
     'color',
     'price',
-    'currency',
-    'images',
     'stock',
+    'images',
     'weight',
-    'is_custom_size',
+    'description',
     'notes'
-];
-    protected $casts = [
-        'images' => 'array',
-        'is_custom_size' => 'boolean'
     ];
 
+    protected $casts = [
+        'images' => 'array',
+    ];
+
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
 }
