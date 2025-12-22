@@ -5,6 +5,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 
 Route::get("/index", [DashboardController::class,"index"])->name("home");
+Route::get("/success", [DashboardController::class,"success"])->name("success");
+Route::get("/order/details", [DashboardController::class,"OrderDetails"])->name("orderdetails");
+Route::get("/checkout", [DashboardController::class,"checkout"])->name("checkout");
 Route::get('/', function () {
     return view('welcome');
 });
