@@ -10,7 +10,6 @@ class CartController extends Controller
     public function OrderDetails($id)
     {
         $product = Product::with('variations')->findOrFail($id);
-        // dd($product);
         return view('checkout.index', compact('product'));
     }
 

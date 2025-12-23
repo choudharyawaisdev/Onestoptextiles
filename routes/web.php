@@ -13,8 +13,8 @@ Route::resource('product', ProductController::class);
 
 Route::get("/index", [DashboardController::class,"index"])->name("home");
 Route::get("/order/details/{id}", [CartController::class,"OrderDetails"])->name("orderdetails");
-Route::get("/checkout", [CartController::class,"checkout"])->name("checkout");
 Route::get("/success", [CartController::class,"success"])->name("success");
+Route::get("/checkout", [CartController::class,"checkout"])->name("checkout");
 
 
 Route::get('/', function () {
