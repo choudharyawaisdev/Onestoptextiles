@@ -3,6 +3,7 @@
 @section('body')
     <main class="container my-5">
         <div class="row">
+            {{-- Image Section --}}
             <div class="col-md-6 mb-4">
                 <div class="row">
                     <div class="col-md-2 order-2 order-md-1">
@@ -21,15 +22,20 @@
                 </div>
             </div>
 
+            {{-- Details Section --}}
             <div class="col-md-6">
                 <h1 class="product-details-title">{{ $product->name }}</h1>
                 <div class="product-price" id="displayPrice">${{ number_format($product->price, 2) }}</div>
+
+                <div id="weightDisplay" class="text-muted small mb-2" style="font-weight: 500;"></div>
+
                 <p class="text-muted mb-4" id="displayDescription">{{ $product->description }}</p>
 
                 <form method="POST" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="product_id" value="{{ $product->id }}">
 
+                    {{-- Color Selection --}}
                     <div class="mb-4">
                         <label class="small text-uppercase font-weight-bold">Color</label><br>
                         <div id="colorContainer">
@@ -43,11 +49,19 @@
                         <input type="hidden" name="selected_color" id="selectedColor" value="">
                     </div>
 
+                    {{-- Size Selection (Dropdown) --}}
                     <div class="mb-4">
                         <label class="small text-uppercase font-weight-bold">Select Size</label>
                         <select class="form-control rounded-0" name="size" id="sizePicker" onchange="updateDetails()">
                             <option value="">Choose Size</option>
                         </select>
+                    </div>
+
+                    {{-- Quantity Selection --}}
+                    <div class="mb-4">
+                        <label class="small text-uppercase font-weight-bold">Quantity</label>
+                        <input type="number" name="quantity" id="quantityInput" class="form-control rounded-0" value="1"
+                            min="1" style="width: 100px;" oninput="updateDetails()">
                     </div>
 
                     <div id="custom-design-form" style="display:none;">
@@ -61,7 +75,9 @@
                     </div>
 
                     <div class="mt-4">
-                        <button type="submit" class="btn-cart">Add to Cart</button>
+                        <button type="submit" class="btn-cart w-100" id="addToCartBtn">
+                            Add to Cart - $<span id="btnPrice">{{ number_format($product->price, 2) }}</span>
+                        </button>
                     </div>
                 </form>
             </div>
@@ -69,8 +85,10 @@
     </main>
 
     <script>
+        // Variations injected from PHP (includes weight, price, size, color)
         const variations = @json($product->variations);
         const storageUrl = "{{ asset('storage/') }}/";
+        let currentUnitPrice = {{ $product->price }};
 
         function updateMainImage(src) {
             document.getElementById('primaryDisplay').src = src;
@@ -90,40 +108,64 @@
             });
             sizePicker.innerHTML += '<option value="custom">Custom Design (+ Rs.10,000 PKR)</option>';
 
+            // Update thumbnails for this color
             const thumbContainer = document.getElementById('thumbnailContainer');
             thumbContainer.innerHTML = '';
             filteredVariations.forEach(v => {
                 const imgs = Array.isArray(v.images) ? v.images : JSON.parse(v.images || '[]');
                 imgs.forEach(img => {
                     thumbContainer.innerHTML += `
-                            <div class="thumb-item" onclick="updateMainImage('${storageUrl + img}')">
-                                <img src="${storageUrl + img}" style="width:50px; height:50px; object-fit:cover;">
-                            </div>`;
+                                    <div class="thumb-item" onclick="updateMainImage('${storageUrl + img}')">
+                                        <img src="${storageUrl + img}" style="width:50px; height:50px; object-fit:cover;">
+                                    </div>`;
                 });
             });
 
+            // Set default image for selected color
             if (filteredVariations.length > 0) {
                 const firstVarImgs = Array.isArray(filteredVariations[0].images) ? filteredVariations[0].images : JSON.parse(filteredVariations[0].images || '[]');
                 if (firstVarImgs.length > 0) updateMainImage(storageUrl + firstVarImgs[0]);
             }
+            updateDetails();
         }
 
         function updateDetails() {
             const selectedSize = document.getElementById('sizePicker').value;
             const selectedColor = document.getElementById('selectedColor').value;
             const customForm = document.getElementById('custom-design-form');
+            const qty = parseInt(document.getElementById('quantityInput').value) || 1;
+            const weightBox = document.getElementById('weightDisplay');
 
             if (selectedSize === 'custom') {
                 customForm.style.display = 'block';
-                return;
-            }
-            customForm.style.display = 'none';
+                currentUnitPrice = {{ $product->price }}; // Or add the custom fee logic here
+                weightBox.innerText = "";
+            } else {
+                customForm.style.display = 'none';
 
-            const variation = variations.find(v => v.size === selectedSize && v.color === selectedColor);
-            if (variation) {
-                document.getElementById('displayPrice').innerText = '$' + parseFloat(variation.price).toFixed(2);
-                document.getElementById('displayDescription').innerText = variation.description || "{{ $product->description }}";
+                // Find the specific row from the variations table
+                const variation = variations.find(v => v.size === selectedSize && v.color === selectedColor);
+
+                if (variation) {
+                    currentUnitPrice = parseFloat(variation.price);
+                    document.getElementById('displayPrice').innerText = '$' + currentUnitPrice.toFixed(2);
+                    document.getElementById('displayDescription').innerText = variation.description || "{{ $product->description }}";
+
+                    // FETCH AND DISPLAY WEIGHT FROM VARIATION
+                    if (variation.weight) {
+                        weightBox.innerText = "Weight: " + variation.weight + "kg";
+                    } else {
+                        weightBox.innerText = "";
+                    }
+                }
             }
+
+            // UPDATE BUTTON PRICE (Unit Price * Quantity)
+            const total = currentUnitPrice * qty;
+            document.getElementById('btnPrice').innerText = total.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
         }
 
         window.onload = () => {
