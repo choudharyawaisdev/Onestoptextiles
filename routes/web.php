@@ -4,6 +4,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\CartController;
 
 
 Route::resource('product', ProductController::class);
@@ -11,9 +12,11 @@ Route::resource('product', ProductController::class);
 
 
 Route::get("/index", [DashboardController::class,"index"])->name("home");
-Route::get("/success", [DashboardController::class,"success"])->name("success");
-Route::get("/order/details", [DashboardController::class,"OrderDetails"])->name("orderdetails");
-Route::get("/checkout", [DashboardController::class,"checkout"])->name("checkout");
+Route::get("/order/details/{id}", [CartController::class,"OrderDetails"])->name("orderdetails");
+Route::get("/checkout", [CartController::class,"checkout"])->name("checkout");
+Route::get("/success", [CartController::class,"success"])->name("success");
+
+
 Route::get('/', function () {
     return view('welcome');
 });

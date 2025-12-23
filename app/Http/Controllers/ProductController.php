@@ -14,7 +14,8 @@ class ProductController extends Controller
      */
     public function index()
     {
-        return view('product.index');
+        $product = Product::all();
+        return view('product.index', compact('product'));
     }
 
     /**
@@ -28,64 +29,72 @@ class ProductController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-public function store(Request $request)
-{
-    // 1. Validation
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'category' => 'required|string|in:blanket,curtain,fabric,fitted_sheet',
-        'material' => 'nullable|string|max:255',
-        'main_image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-        'details.price.*' => 'required|numeric|min:0',
-        'details.images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120'
-    ]);
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'category' => 'required|in:blanket,curtain,fabric,fitted_sheet',
+            'price' => 'required|numeric|min:0',
+            'description' => 'nullable|string',
+            'material' => 'nullable|string|max:255',
+            'main_image' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120',
 
-    // 2. Save Main Product
-    $mainImagePath = $request->file('main_image')->store('products', 'public');
+            'details.price.*' => 'nullable|numeric|min:0',
+            'details.size.*' => 'nullable|string|max:100',
+            // 'details.width.*' => 'nullable|string|max:50',
+            // 'details.length.*' => 'nullable|string|max:50',
+            'details.color.*' => 'nullable|string|max:100',
+            'details.weight.*' => 'nullable|string|max:50',
+            'details.finish.*' => 'nullable|string|max:100',
+            'details.description.*' => 'nullable|string',
+            'details.images.*.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+        ]);
 
-    $product = Product::create([
-        'name' => $request->name,
-        'slug' => Str::slug($request->name),
-        'category' => $request->category,
-        'main_image' => $mainImagePath,
-        'material' => $request->material,
-    ]);
+        $mainImagePath = $request->file('main_image')->store('products', 'public');
 
-    // 3. Save Variations
-    if ($request->has('details')) {
-        $details = $request->input('details');
-        
-        foreach ($details['price'] as $index => $price) {
-            $variantImages = [];
+        $product = Product::create([
+            'name' => $request->name,
+            'slug' => Str::slug($request->name),
+            'category' => $request->category,
+            'price' => $request->price,
+            'description' => $request->description,
+            'material' => $request->material,
+            'main_image' => $mainImagePath,
+        ]);
 
-            // Handle Nested File Upload correctly
-            if ($request->hasFile("details.images.$index")) {
-                $files = $request->file("details.images.$index");
-                // In case "multiple" allows more than one image per variant
-                if (is_array($files)) {
-                    foreach ($files as $file) {
-                        $variantImages[] = $file->store('products/variants', 'public');
+        if ($request->filled('details.price')) {
+            foreach ($request->details['price'] as $index => $variantPrice) {
+                if ($variantPrice === null)
+                    continue;
+
+                $variantImages = [];
+                    if ($request->hasFile("details.images.$index")) {
+                        $files = $request->file("details.images.$index");
+                        if (!is_array($files)) {
+                            $files = [$files]; // make it an array if single file
+                        }
+                        foreach ($files as $file) {
+                            $variantImages[] = $file->store('products/variants', 'public');
+                        }
                     }
-                } else {
-                    $variantImages[] = $files->store('products/variants', 'public');
-                }
+
+                ProductVariation::create([
+                    'product_id' => $product->id,
+                    'price' => $variantPrice,
+                    'description' => $request->details['description'][$index] ?? null,
+                    'images' => $variantImages,
+                    'size' => $request->details['size'][$index] ?? null,
+                    // 'width' => $request->details['width'][$index] ?? null,
+                    // 'length' => $request->details['length'][$index] ?? null,
+                    'color' => $request->details['color'][$index] ?? null,
+                    'weight' => $request->details['weight'][$index] ?? null,
+                    'finish' => $request->details['finish'][$index] ?? null,
+                ]);
             }
-
-            ProductVariation::create([
-                'product_id'  => $product->id,
-                'size'        => $details['size'][$index] ?? null,
-                'color'       => $details['color'][$index] ?? null,
-                'price'       => $price,
-                'weight'      => $details['weight'][$index] ?? null,
-                'description' => $details['description'][$index] ?? null,
-                'images'      => $variantImages, // This will be saved as JSON
-            ]);
-            // dd($details);
         }
-    }
 
-    return redirect()->route('product.create')->with('success', 'Product and variants created successfully!');
-}
+        return redirect()->route('product.create')->with('success', 'Product and variants saved successfully!');
+    }
 
 
 

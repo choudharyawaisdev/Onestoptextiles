@@ -103,7 +103,6 @@
             background: var(--white);
             border-radius: 0;
             transition: var(--transition);
-            margin-bottom: 30px;
         }
 
         .img-wrapper {
