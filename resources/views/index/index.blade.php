@@ -24,9 +24,7 @@
                                     ${{ number_format($product->price, 2) }}
                                 </span>
                             </div>
-                            <button class="btn btn-dark btn-sm rounded-0 add-to-cart" data-id="{{ $product->id }}"
-                                data-name="{{ $product->name }}" data-price="{{ $product->price }}"
-                                data-image="{{ asset('storage/' . $product->main_image) }}">
+                            <button class="btn btn-dark btn-sm rounded-0 add-to-cart">
                                 Add to Cart
                             </button>
                         </div>
