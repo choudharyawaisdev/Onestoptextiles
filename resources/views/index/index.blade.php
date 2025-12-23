@@ -24,9 +24,10 @@
                                     ${{ number_format($product->price, 2) }}
                                 </span>
                             </div>
-                            <button class="btn btn-dark btn-sm rounded-0 add-to-cart">
+
+                            <a href="{{ route('orderdetails', $product->id) }}" class="btn btn-dark btn-sm rounded-0 add-to-cart">
                                 Add to Cart
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
