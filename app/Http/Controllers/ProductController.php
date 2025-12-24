@@ -83,17 +83,63 @@ class ProductController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+   public function edit(Product $product)
     {
-        //
+        $product->load('variations');
+        return view('admin.product.edit', compact('product'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
-    {
-        //
+    public function update(Request $request, Product $product)
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'category' => 'required',
+        'unit' => 'required',
+        'moq' => 'required|numeric',
+        'main_image' => 'nullable|image',
+        'details.price.*' => 'nullable|numeric',
+    ]);
+
+    $imagePath = $product->main_image; 
+    if ($request->hasFile('main_image')) {
+        if($product->main_image && \Storage::disk('public')->exists($product->main_image[0] ?? '')){
+            \Storage::disk('public')->delete($product->main_image);
+        }
+        $path = $request->file('main_image')->store('products', 'public');
+        $imagePath = [$path];
+    }
+
+    $product->update([
+        'name' => $request->name,
+        'slug' => \Str::slug($request->name),
+        'category' => $request->category,
+        'unit' => $request->unit,
+        'moq' => $request->moq,
+        'material' => $request->material,
+        'description' => $request->description,
+        'main_image' => $imagePath,
+    ]);
+
+    $product->variations()->delete(); 
+
+    if ($request->filled('details.price')) {
+        foreach ($request->details['price'] as $index => $price) {
+            ProductVariation::create([
+                'product_id' => $product->id,
+                'price' => $price ?? 0,
+                'size' => $request->details['size'][$index] ?? null,
+                'color' => $request->details['color'][$index] ?? null,
+                'weight' => $request->details['weight'][$index] ?? null,
+                'finish' => $request->details['finish'][$index] ?? null,
+                'notes' => $request->details['notes'][$index] ?? null,
+            ]);
+        }
+    }
+
+    return redirect()->route('product.index')->with('success', 'Product updated successfully!');
     }
 
     /**

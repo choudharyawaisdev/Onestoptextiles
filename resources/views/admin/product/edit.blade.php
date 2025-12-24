@@ -1,234 +1,170 @@
 @extends('admin.layouts.app')
 
-@section('title')
-    Edit Menu Item - {{ $menu->title }}
-@endsection
+@section('title') Edit Product @endsection
 
 @section('body')
-    <div class="container-fluid">
-        <div class="d-md-flex d-block align-items-center justify-content-between my-4 page-header-breadcrumb">
-            <h1 class="page-title fw-semibold fs-20 mb-0">Edit Menu Item</h1>
-            <nav>
-                <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item"><a href="{{ url('/') }}">Home</a></li>
-                    <li class="breadcrumb-item"><a href="{{ route('admin.menus.index') }}">Menu Items</a></li>
-                    <li class="breadcrumb-item active">Edit</li>
-                </ol>
-            </nav>
-        </div>
+<div class="container-fluid">
+    <div class="d-md-flex d-block align-items-center justify-content-between my-4">
+        <h1 class="page-title fw-semibold fs-20 mb-0">Edit Product: {{ $product->name }}</h1>
+    </div>
 
-        <div class="row justify-content-center">
-            <div class="col-md-12">
-                <div class="card custom-card overflow-hidden">
-                    <div class="card-body bg-white shadow p-4">
-                        <form action="{{ route('admin.menus.update', $menu->id) }}" method="POST"
-                            enctype="multipart/form-data">
-                            @csrf
-                            @method('PUT')
+    <div class="row justify-content-center">
+        <div class="col-md-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <form action="{{ route('product.update', $product->id) }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        @method('PUT')
 
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="category_id" class="form-label">Category</label>
-                                    <select class="form-control @error('category_id') is-invalid @enderror"
-                                        name="category_id" id="category_id" required>
-                                        <option value="">-- Select Category --</option>
-                                        @foreach ($categories as $category)
-                                            <option value="{{ $category->id }}"
-                                                {{ old('category_id', $menu->category_id) == $category->id ? 'selected' : '' }}
-                                                data-title="{{ $category->title }}">
-                                                {{ $category->title }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('category_id')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="col-md-6 mb-3">
-                                    <label for="title" class="form-label">Title</label>
-                                    <input type="text" class="form-control @error('title') is-invalid @enderror"
-                                        id="title" name="title" value="{{ old('title', $menu->title) }}" required>
-                                    @error('title')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">Select Product Category</label>
+                                <select name="category" id="product-category" class="form-select" required>
+                                    <option value="blanket" {{ $product->category == 'blanket' ? 'selected' : '' }}>THERMAL BLANKETS</option>
+                                    <option value="curtain" {{ $product->category == 'curtain' ? 'selected' : '' }}>BLACK OUT CURTAINS</option>
+                                    <option value="fabric" {{ $product->category == 'fabric' ? 'selected' : '' }}>WOVEN FABRIC ROLLS</option>
+                                    <option value="fitted_sheet" {{ $product->category == 'fitted_sheet' ? 'selected' : '' }}>FITTED SHEETS</option>
+                                </select>
                             </div>
 
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="price" class="form-label">Single Price (No Type/Size)</label>
-                                    <input type="number" step="0.01"
-                                        class="form-control @error('single_price') is-invalid @enderror"
-                                        id="single_price"
-                                        name="single_price"
-                                        value="{{ old('single_price', is_array($menu->price) ? '' : $menu->price) }}"
-                                        min="0" placeholder="Optional if no sizes">
-                                    @error('price')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                    <small class="text-muted">Use this OR Type/Price rows below</small>
-                                </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Product Name</label>
+                                <input type="text" name="name" class="form-control" value="{{ $product->name }}" required>
+                            </div>
 
-                                <div class="col-6 mb-3">
-                                    <label class="form-label">Add Ons (Optional)</label>
-                                    <div
-                                        style="max-height:250px; overflow-y:auto; border:1px solid #ddd; padding:10px; border-radius:5px;">
-                                        @foreach ($addons as $addon)
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" name="addons[]"
-                                                    value="{{ $addon->id }}" id="addon{{ $addon->id }}"
-                                                    {{ (old('addons') ? in_array($addon->id, old('addons')) : $menu->addons->contains($addon->id)) ? 'checked' : '' }}>
-                                                <label class="form-check-label" for="addon{{ $addon->id }}">
-                                                    {{ $addon->name }} - {{ number_format($addon->price, 2) }}
-                                                </label>
-                                            </div>
-                                        @endforeach
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Unit</label>
+                                <input type="text" name="unit" id="product-unit" class="form-control bg-light" readonly value="{{ $product->unit }}">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">MOQ</label>
+                                <input type="number" name="moq" id="product-moq" class="form-control" value="{{ $product->moq }}">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Material</label>
+                                <input type="text" name="material" id="material-input" class="form-control" value="{{ $product->material }}">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Update Image (Leave blank to keep current)</label>
+                                <input type="file" name="main_image" class="form-control">
+                                @if($product->main_image)
+                                    <small class="text-muted">Current: {{ is_array($product->main_image) ? $product->main_image[0] : $product->main_image }}</small>
+                                @endif
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">Description / Features</label>
+                                <textarea name="description" id="product-desc" class="form-control" rows="2">{{ $product->description }}</textarea>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        <h5 class="mb-3 text-primary fw-bold">Product Variations</h5>
+
+                        <div id="variant-wrapper" class="p-3 border rounded bg-light">
+                            @foreach($product->variations as $variation)
+                            <div class="variant-row card mb-3 border-0 shadow-sm">
+                                <div class="card-body border rounded">
+                                    <div class="row g-3">
+                                        <div class="col-md-3">
+                                            <label class="form-label fw-semibold">Size / Dimension</label>
+                                            <input type="text" name="details[size][]" class="form-control" value="{{ $variation->size }}">
+                                        </div>
+
+                                        <div class="col-md-2">
+                                            <label class="form-label fw-semibold">Color</label>
+                                            <input type="text" name="details[color][]" class="form-control" value="{{ $variation->color }}">
+                                        </div>
+
+                                        <div class="col-md-2 field-weight">
+                                            <label class="form-label fw-semibold">Weight</label>
+                                            <input type="text" name="details[weight][]" class="form-control" value="{{ $variation->weight }}">
+                                        </div>
+
+                                        <div class="col-md-3 field-finish" style="{{ $product->category == 'blanket' ? 'display:none;' : '' }}">
+                                            <label class="form-label fw-semibold">Style / Finish</label>
+                                            <select name="details[finish][]" class="form-select">
+                                                <option value="">Select Finish Option</option>
+                                                <option value="anti_microbial" {{ $variation->finish == 'anti_microbial' ? 'selected' : '' }}>Anti Microbial</option>
+                                                <option value="all_around" {{ $variation->finish == 'all_around' ? 'selected' : '' }}>All Around Elastic</option>
+                                                <option value="four_corner" {{ $variation->finish == 'four_corner' ? 'selected' : '' }}>4 Corner Elastic</option>
+                                                <option value="grommet" {{ $variation->finish == 'grommet' ? 'selected' : '' }}>Grommet Panel</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-2">
+                                            <label class="form-label fw-semibold">Price ($)</label>
+                                            <input type="number" step="0.01" name="details[price][]" class="form-control" value="{{ $variation->price }}">
+                                        </div>
+
+                                        <div class="col-md-12">
+                                            <label class="form-label fw-semibold">Variant Note</label>
+                                            <textarea name="details[notes][]" class="form-control" rows="1">{{ $variation->notes }}</textarea>
+                                        </div>
+
+                                        <div class="col-md-12 text-end">
+                                            <button type="button" class="btn btn-sm btn-danger remove-row">
+                                                <i class="bi bi-trash"></i> Remove Variant
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                            @endforeach
+                        </div>
 
-                            <div class="row mb-3">
-                                <div class="col-12">
-                                    <label class="form-label d-block">Price Options (Size/Type & Price)</label>
-                                    <div id="typePriceContainer"></div>
-                                    <button type="button" id="addRowBtn" class="btn btn-sm btn-outline-secondary mt-2">
-                                        Add Price/Type
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="discount" class="form-label">Discount (Optional)</label>
-                                   <input 
-                                    type="number" 
-                                    step="0.01"
-                                    class="form-control @error('single_price') is-invalid @enderror" 
-                                    id="single_price"
-                                    name="single_price"
-                                    value="{{ old('single_price', $menu->price) }}"
-                                    min="0"
-                                    placeholder="Optional if no sizes">
-
-                                    @error('discount')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="col-md-6 mb-3">
-                                    <label for="image" class="form-label">Image (Optional)</label>
-                                    <input type="file" class="form-control @error('image') is-invalid @enderror"
-                                        id="image" name="image" accept="image/*" onchange="previewImage(event)">
-                                    @error('image')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-
-                                    @if ($menu->image)
-                                        <div class="mt-3">
-                                            <p><strong>Current Image:</strong></p>
-                                            <img src="{{ asset($menu->image) }}" alt="Current" class="img-fluid"
-                                                style="max-height:200px;">
-                                        </div>
-                                    @endif
-
-                                    <img id="imagePreview" src="#" alt="Preview" class="mt-2 img-fluid"
-                                        style="display:none; max-height:10px;">
-                                </div>
-
-                                <div class="col-12 mb-3">
-                                    <label for="description" class="form-label">Description</label>
-                                    <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description"
-                                        rows="3">{{ old('description', $menu->description) }}</textarea>
-                                    @error('description')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-primary">Update Menu Item</button>
-                                <a href="{{ route('admin.menus.index') }}" class="btn btn-secondary">Cancel</a>
-                            </div>
-                        </form>
-                    </div>
+                        <div class="mt-4">
+                            <button type="button" id="add-row" class="btn btn-outline-primary fw-bold">
+                                <i class="bi bi-plus-lg"></i> + Add Another Variant
+                            </button>
+                            <button type="submit" class="btn btn-success float-end px-5 fw-bold">Update Product Data</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-       const categoryTypes = {
-            'Pizza': ['Personal', 'Small Pizza', 'Medium Pizza', 'Large Pizza', 'XL Pizza', 'XXL Pizza', 'Family Pizza'],
-            'Burger': ['Single', 'Double', 'Triple', 'Zinger'],
-            'Drinks': ['Small', 'Regular', 'Large', 'XL'],
-            'Fries': ['Fries Small', 'Fries Large', 'Mayo Fries', 'Masala Fries', 'Loaded Fries', 'Pizza Fries Small', 'Pizza Fries Large', 'Cheese Fries'],
-            'Platter': ['Single', 'Double', 'Half', 'Large', 'Special Platter'],
-            'Wings': ['4 Pcs Wings', '6 Pcs Wings', '8 Pcs Wings', '10 Pcs Wings', '12 Pcs Wings', '15 Pcs Wings', 'Hot Wings', 'Oven Baked Wings', 'Bar-B-Q Wings'],
-            'Pasta': ['Pasta Small', 'Pasta Large', 'Chef Special Pasta', 'Creamy Chicken Pasta', 'Lagana Pasta'],
-            'Sandwich': ['Sandwich Small', 'Sandwich Large', 'Special Sandwich', 'Mexican Sandwich', 'Jalapeno Sandwich', 'Crispy Sandwich'],
-            'Rolls': ['Chicken Roll', 'Beef Roll', '4 Chicken Spin Rolls', '4 Behari Rolls', 'Tikka Paratha Rolls', 'Chapli Kabab Paratha', 'Crunchy Paratha Roll'],
-            'Nuggets & Shots': ['4 Pcs', '5 Pcs', '6 Pcs', '7 Pcs', '12 Pcs', '15 Pcs', 'Hot Shot'],
-        };
+<script>
+// JS logic wahi rahega jo Create page par tha, bas 'remove-row' wala check behtar hai
+document.addEventListener('DOMContentLoaded', () => {
+    const category = document.getElementById('product-category');
+    const wrapper  = document.getElementById('variant-wrapper');
+    const unitInput = document.getElementById('product-unit');
+    const moqInput  = document.getElementById('product-moq');
 
-        const categorySelect = document.getElementById('category_id');
-        const typePriceContainer = document.getElementById('typePriceContainer');
-        const addRowBtn = document.getElementById('addRowBtn');
+    category.addEventListener('change', () => {
+        const val = category.value;
+        const finishes = document.querySelectorAll('.field-finish');
+        finishes.forEach(el => el.style.display = (val === 'blanket' ? 'none' : 'block'));
+        
+        // Auto values for edit if needed (optional)
+        if (val === 'blanket') { unitInput.value = "PIECE"; moqInput.value = 2; }
+        else if (val === 'curtain') { unitInput.value = "PAIR"; moqInput.value = 1; }
+        // ... baki logic as it is
+    });
 
-        // Existing sizes from DB
-        const existingSizes = @json($menu->sizes);
+    document.getElementById('add-row').addEventListener('click', () => {
+        const firstRow = document.querySelector('.variant-row');
+        const clone = firstRow.cloneNode(true);
+        clone.querySelectorAll('input, textarea, select').forEach(el => el.value = '');
+        wrapper.appendChild(clone);
+    });
 
-        function createTypeSelect(options, selected = '') {
-            let html = '<select class="form-control mb-1" name="type[]"><option value="">-- Select Type --</option>';
-            options.forEach(opt => {
-                html += `<option value="${opt}" ${opt === selected ? 'selected' : ''}>${opt}</option>`;
-            });
-            html += '</select>';
-            return html;
-        }
-
-        function addRow(type = '', price = '') {
-            const catText = categorySelect.options[categorySelect.selectedIndex]?.text || '';
-            const options = categoryTypes[catText] || [];
-
-            const row = document.createElement('div');
-            row.className = 'row mb-2 align-items-end type-price-row';
-            row.innerHTML = `
-            <div class="col-5">${createTypeSelect(options, type)}</div>
-            <div class="col-5"><input type="number" step="0.01" class="form-control" name="price[]" value="${price}" min="0"></div>
-            <div class="col-2"><button type="button" class="btn btn-danger btn-sm remove-row-btn">Remove</button></div>
-        `;
-            row.querySelector('.remove-row-btn')?.addEventListener('click', () => row.remove());
-            typePriceContainer.appendChild(row);
-        }
-
-        function loadExistingRows() {
-            typePriceContainer.innerHTML = '';
-            if (existingSizes.length > 0) {
-                existingSizes.forEach(s => addRow(s.name, s.price));
-            } else if (categoryTypes[categorySelect.options[categorySelect.selectedIndex]?.text]) {
-                addRow();
+    document.addEventListener('click', e => {
+        if (e.target.closest('.remove-row')) {
+            const rows = document.querySelectorAll('.variant-row');
+            if (rows.length > 1) {
+                e.target.closest('.variant-row').remove();
+            } else {
+                alert("At least one variant is required.");
             }
         }
-
-        categorySelect.addEventListener('change', loadExistingRows);
-        addRowBtn.addEventListener('click', () => {
-            const cat = categorySelect.options[categorySelect.selectedIndex]?.text;
-            if (categoryTypes[cat]) addRow();
-            else alert('Select a category first');
-        });
-
-        // Load on page ready
-        window.addEventListener('DOMContentLoaded', () => {
-            loadExistingRows();
-        });
-
-        function previewImage(e) {
-            const preview = document.getElementById('imagePreview');
-            if (e.target.files[0]) {
-                preview.src = URL.createObjectURL(e.target.files[0]);
-                preview.style.display = 'block';
-            }
-        }
-    </script>
+    });
+});
+</script>
 @endsection
