@@ -4,105 +4,150 @@
 
     <main class="container my-5">
         <div class="row">
-            <div class="col-md-6 mb-4">
-                <!--  -->
+            {{-- Image Section: Thumbnails + Main Image --}}
+            <div class="col-md-7 mb-4">
+                <div class="row g-2">
+                    <div class="col-2">
+                        <div id="thumbnailContainer" class="d-flex flex-column gap-2"
+                            style="max-height: 500px; overflow-y: auto;">
+                            <div class="thumb-item border active"
+                                onclick="updateMainImage('{{ asset('storage/' . $product->main_image) }}', this)"
+                                style="cursor:pointer;">
+                                <img src="{{ asset('storage/' . $product->main_image) }}" class="img-fluid w-100"
+                                    style="object-fit: cover; aspect-ratio: 1/1;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-10">
+                        <div class="main-img-wrapper border overflow-hidden" style="background:#f8f9fa; height: 500px;">
+                            <img id="mainProductImage" src="{{ asset('storage/' . $product->main_image) }}"
+                                alt="{{ $product->name }}" class="w-100 h-100" style="object-fit:contain;">
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="col-md-6">
-                <h1 class="product-details-title">{{ $product->name }}</h1>
-                <div class="product-price" id="displayPrice">${{ number_format($product->price, 2) }}</div>
-                <div id="weightDisplay" class="text-muted small mb-2"></div>
+            {{-- Product Info Section --}}
+            <div class="col-md-5">
+                <h1 class="product-details-title h2 fw-bold">{{ $product->name }}</h1>
+                <div class="h3 text-primary mb-2" id="displayPrice">${{ number_format($product->price, 2) }}</div>
+                <div id="weightDisplay" class="text-muted small mb-3"></div>
+
                 @if($product->description)
-                    <p class="text-muted mb-4" id="displayDescription">{{ $product->description }}</p>
+                    <p class="text-secondary mb-4" id="displayDescription">{{ $product->description }}</p>
                 @endif
-                <ul class="product-attributes list-unstyled mb-3" style="font-weight:500;">
+
+                <ul class="product-attributes list-unstyled mb-4 small">
                     @if($product->material)
-                        <li><strong>Material:</strong> {{ $product->material }}</li>
+                        <li class="mb-1"><strong>Material:</strong> {{ $product->material }}</li>
                     @endif
                     @if($product->unit)
-                        <li><strong>Unit:</strong> {{ $product->unit }}</li>
-                    @endif
-                    @if($product->color)
-                        <li><strong>Color:</strong> {{ $product->color }}</li>
-                    @endif
-                    @if($product->weight)
-                        <li><strong>Weight:</strong> {{ $product->weight }}</li>
-                    @endif
-                    @if($product->finish)
-                        <li><strong>Finish:</strong> {{ $product->finish }}</li>
+                        <li class="mb-1"><strong>Unit:</strong> {{ $product->unit }}</li>
                     @endif
                 </ul>
+
                 <form method="POST" action="{{ route('cart.add') }}">
                     @csrf
                     <input type="hidden" name="product_id" value="{{ $product->id }}">
 
-                    <div class="row">
-                        {{-- Color Selection --}}
-                        <div class="col-12 mb-4">
-                            <label class="small text-uppercase font-weight-bold">Color</label><br>
-                            <div id="colorContainer">
-                                @foreach($product->variations->unique('color') as $i => $variation)
-                                    <span class="color-swatch {{ $i === 0 ? 'active' : '' }}"
-                                        style="background: {{ $variation->color }}; width:30px; height:30px; display:inline-block; cursor:pointer; border:1px solid #ddd;"
-                                        onclick="filterByColor(this, '{{ $variation->color }}')">
-                                    </span>
-                                @endforeach
-                            </div>
-                            <input type="hidden" name="selected_color" id="selectedColor">
+                    {{-- Color Selection --}}
+                    <div class="mb-4">
+                        <label class="small text-uppercase fw-bold d-block mb-2">Color</label>
+                        <div id="colorContainer" class="d-flex gap-2 mb-2">
+                            @foreach($product->variations->unique('color') as $i => $variation)
+                                <span class="color-swatch rounded-circle border {{ $i === 0 ? 'active-swatch' : '' }}"
+                                    style="background: {{ $variation->color }}; width:35px; height:35px; display:inline-block; cursor:pointer;"
+                                    onclick="filterByColor(this, '{{ $variation->color }}')">
+                                </span>
+                            @endforeach
                         </div>
-
-                        {{-- Size Selection --}}
-                        <div class="col-md-12 mb-4">
-                            <label class="small text-uppercase font-weight-bold">Select Size</label>
-                            <select class="form-control rounded-0" name="size" id="sizePicker" onchange="updateDetails()">
-                                <option value="">Choose Size</option>
-                            </select>
-                        </div>
-
-                        {{-- Quantity --}}
-                        <div class="col-md-12 mb-4">
-                            <label class="small text-uppercase font-weight-bold">Quantity</label>
-                            <input type="number" name="quantity" id="quantityInput"
-                                class="form-control rounded-0 text-center" value="1" min="1" oninput="updateDetails()">
-                        </div>
-
-                        {{-- Addons --}}
-                        @if($product->addons->count() > 0)
-                            <div class="col-md-12 mb-4">
-                                <label class="small text-uppercase font-weight-bold">Select Addons</label>
-                                @foreach($product->addons as $addon)
-                                    <div class="form-check">
-                                        <input class="form-check-input addon-checkbox" type="checkbox" name="addon_ids[]"
-                                            value="{{ $addon->id }}" data-price="{{ $addon->price }}" id="addon{{ $addon->id }}"
-                                            onchange="updateDetails()">
-                                        <label class="form-check-label" for="addon{{ $addon->id }}">
-                                            {{ $addon->title }} - ${{ number_format($addon->price, 2) }}
-                                        </label>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @endif
+                        <input type="hidden" name="selected_color" id="selectedColor">
                     </div>
 
-                    <div class="mt-4">
-                        <button type="submit" class="btn-cart w-100" id="addToCartBtn">
-                            Add to Cart - $<span id="btnPrice">{{ number_format($product->price + $addonTotal, 2) }}</span>
-                        </button>
+                    {{-- Size Selection --}}
+                    <div class="mb-4">
+                        <label class="small text-uppercase fw-bold d-block mb-2">Select Size</label>
+                        <select class="form-control" name="size" id="sizePicker" onchange="updateDetails()">
+                            <option value="">Choose Size</option>
+                        </select>
                     </div>
+
+                    {{-- Quantity --}}
+                    <div class="mb-4">
+                        <label class="small text-uppercase fw-bold d-block mb-2">Quantity</label>
+                        <input type="number" name="quantity" id="quantityInput" class="form-control" value="1" min="1"
+                            oninput="updateDetails()">
+                    </div>
+
+                    {{-- Addons --}}
+                    @if($product->addons->count() > 0)
+                        <div class="mb-4 p-3 bg-light border">
+                            <label class="small text-uppercase fw-bold d-block mb-2">Available Add-ons</label>
+                            @foreach($product->addons as $addon)
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input addon-checkbox" type="checkbox" name="addon_ids[]"
+                                        value="{{ $addon->id }}" data-price="{{ $addon->price }}" id="addon{{ $addon->id }}"
+                                        onchange="updateDetails()">
+                                    <label class="form-check-label small" for="addon{{ $addon->id }}">
+                                        {{ $addon->name }} (+${{ number_format($addon->price, 2) }})
+                                    </label>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    <button type="submit" class="btn btn-dark w-100 py-3 fw-bold" id="addToCartBtn">
+                        ADD TO CART - $<span id="btnPrice">{{ number_format($product->price, 2) }}</span>
+                    </button>
                 </form>
-
             </div>
         </div>
     </main>
 
+    <style>
+        .color-swatch.active-swatch {
+            outline: 2px solid #000;
+            outline-offset: 2px;
+        }
+
+        .thumb-item {
+            opacity: 0.6;
+            transition: 0.3s;
+            border: 2px solid transparent !important;
+        }
+
+        .thumb-item.active,
+        .thumb-item:hover {
+            opacity: 1;
+            border-color: #000 !important;
+        }
+
+        .thumb-item img {
+            aspect-ratio: 1/1;
+            object-fit: cover;
+        }
+
+        /* Style consistency for number input */
+        input[type=number].form-control {
+            text-align: left;
+        }
+    </style>
+
     <script>
         const variations = @json($product->variations);
         const storageUrl = "{{ asset('storage/') }}/";
-        let currentUnitPrice = {{ $product->price }};
+        const mainProductImage = "{{ asset('storage/' . $product->main_image) }}";
+
+        function updateMainImage(src, element) {
+            document.getElementById('mainProductImage').src = src;
+            document.querySelectorAll('.thumb-item').forEach(t => t.classList.remove('active'));
+            if (element) element.classList.add('active');
+        }
 
         function filterByColor(el, color) {
-            document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
-            el.classList.add('active');
+            document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active-swatch'));
+            el.classList.add('active-swatch');
             document.getElementById('selectedColor').value = color;
 
             const filteredVariations = variations.filter(v => v.color === color);
@@ -114,22 +159,22 @@
             });
 
             const thumbContainer = document.getElementById('thumbnailContainer');
-            thumbContainer.innerHTML = '';
-            filteredVariations.forEach(v => {
-                const imgs = Array.isArray(v.images) ? v.images : JSON.parse(v.images || '[]');
-                imgs.forEach(img => {
-                    thumbContainer.innerHTML += `
-                    <div class="thumb-item" onclick="updateMainImage('${storageUrl + img}')">
-                        <img src="${storageUrl + img}" style="width:50px;height:50px;object-fit:cover;">
+            thumbContainer.innerHTML = `
+                    <div class="thumb-item border active" onclick="updateMainImage('${mainProductImage}', this)">
+                        <img src="${mainProductImage}" class="img-fluid w-100">
                     </div>`;
-                });
+
+            filteredVariations.forEach(v => {
+                if (v.image) {
+                    thumbContainer.innerHTML += `
+                            <div class="thumb-item border" onclick="updateMainImage('${storageUrl + v.image}', this)">
+                                <img src="${storageUrl + v.image}" class="img-fluid w-100">
+                            </div>`;
+                }
             });
 
-            if (filteredVariations.length > 0) {
-                const firstImgs = Array.isArray(filteredVariations[0].images)
-                    ? filteredVariations[0].images
-                    : JSON.parse(filteredVariations[0].images || '[]');
-                if (firstImgs.length > 0) updateMainImage(storageUrl + firstImgs[0]);
+            if (filteredVariations.length > 0 && filteredVariations[0].image) {
+                updateMainImage(storageUrl + filteredVariations[0].image, thumbContainer.children[1]);
             }
 
             updateDetails();
@@ -139,33 +184,31 @@
             const size = document.getElementById('sizePicker').value;
             const color = document.getElementById('selectedColor').value;
             const qty = parseInt(document.getElementById('quantityInput').value) || 1;
-            const weightBox = document.getElementById('weightDisplay');
 
-            let price = {{ $product->price }};
+            let unitPrice = {{ $product->price }};
 
             if (size) {
                 const variation = variations.find(v => v.size === size && v.color === color);
                 if (variation) {
-                    price = parseFloat(variation.price);
-                    document.getElementById('displayPrice').innerText = '$' + price.toFixed(2);
-                    document.getElementById('displayDescription').innerText = variation.description || "{{ $product->description }}";
-                    weightBox.innerText = variation.weight ? 'Weight: ' + variation.weight + 'kg' : '';
+                    unitPrice = parseFloat(variation.price);
+                    document.getElementById('displayPrice').innerText = '$' + unitPrice.toFixed(2);
+                    if (variation.weight) document.getElementById('weightDisplay').innerText = 'Weight: ' + variation.weight;
+                    if (variation.image) updateMainImage(storageUrl + variation.image);
                 }
             }
 
-            // Add addon prices
+            let totalPrice = unitPrice;
             document.querySelectorAll('.addon-checkbox:checked').forEach(cb => {
-                price += parseFloat(cb.dataset.price);
+                totalPrice += parseFloat(cb.dataset.price);
             });
 
-            document.getElementById('btnPrice').innerText = (price * qty).toFixed(2);
+            document.getElementById('btnPrice').innerText = (totalPrice * qty).toFixed(2);
         }
 
         window.onload = () => {
             const firstSwatch = document.querySelector('.color-swatch');
             if (firstSwatch) firstSwatch.click();
         };
-
     </script>
 
 @endsection

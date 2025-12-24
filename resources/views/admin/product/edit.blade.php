@@ -30,7 +30,16 @@
                                         <option value="fitted_sheet" {{ $product->category == 'fitted_sheet' ? 'selected' : '' }}>FITTED SHEETS</option>
                                     </select>
                                 </div>
-
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">Product Add-ons</label>
+                                        <select name="addon_ids[]" class="form-select" multiple>
+                                            @foreach($addons as $addon)
+                                                <option value="{{ $addon->id }}" {{ $product->addons->contains($addon->id) ? 'selected' : '' }}>
+                                                    {{ $addon->title }} - ${{ number_format($addon->price, 2) }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                 <div class="col-md-4">
                                     <label class="form-label fw-bold">Product Name</label>
                                     <input type="text" name="name" class="form-control" value="{{ $product->name }}"
@@ -56,26 +65,27 @@
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold">Update Image (Leave blank to keep current)</label>
+                                    <label class="form-label fw-bold">Update Main Image</label>
                                     <input type="file" name="main_image" class="form-control">
                                     @if($product->main_image)
-                                        <small class="text-muted">Current:
-                                            {{ is_array($product->main_image) ? $product->main_image[0] : $product->main_image }}</small>
+                                        <div class="mt-2">
+                                            <img src="{{ asset('storage/' . $product->main_image) }}" width="80"
+                                                class="img-thumbnail">
+                                        </div>
                                     @endif
                                 </div>
 
                                 <div class="col-md-12">
                                     <label class="form-label fw-bold">Description / Features</label>
                                     <textarea name="description" id="product-desc" class="form-control"
-                                        rows="2">{{ $product->description }}</textarea>
+                                        rows="3">{{ $product->description }}</textarea>
                                 </div>
                             </div>
-
                             <hr class="my-4">
                             <h5 class="mb-3 text-primary fw-bold">Product Variations</h5>
 
                             <div id="variant-wrapper" class="p-3 border rounded bg-light">
-                                @foreach($product->variations as $variation)
+                                @foreach($product->variations as $index => $variation)
                                     <div class="variant-row card mb-3 border-0 shadow-sm">
                                         <div class="card-body border rounded">
                                             <div class="row g-3">
@@ -91,7 +101,7 @@
                                                         value="{{ $variation->color }}">
                                                 </div>
 
-                                                <div class="col-md-2 field-weight">
+                                                <div class="col-md-2">
                                                     <label class="form-label fw-semibold">Weight</label>
                                                     <input type="text" name="details[weight][]" class="form-control"
                                                         value="{{ $variation->weight }}">
@@ -117,24 +127,21 @@
 
                                                 <div class="col-md-3">
                                                     <label class="form-label fw-semibold">Variant Image</label>
-                                                    <input type="file" name="variant_images[]" class="form-control">
-
-                                                    @if(isset($variation->image))
+                                                    <input type="file" name="details[image][]" class="form-control">
+                                                    <input type="hidden" name="existing_variant_images[]"
+                                                        value="{{ $variation->image }}">
+                                                    @if($variation->image)
                                                         <div class="mt-1">
                                                             <img src="{{ asset('storage/' . $variation->image) }}" width="50"
                                                                 class="img-thumbnail">
-                                                            <input type="hidden" name="existing_variant_images[]"
-                                                                value="{{ $variation->image }}">
                                                         </div>
-                                                    @else
-                                                        <input type="hidden" name="existing_variant_images[]" value="">
                                                     @endif
                                                 </div>
 
                                                 <div class="col-md-12">
                                                     <label class="form-label fw-semibold">Variant Note</label>
                                                     <textarea name="details[notes][]" class="form-control"
-                                                        rows="1">{{ $variation->notes }}</textarea>
+                                                        rows="3">{{ $variation->description }}</textarea>
                                                 </div>
 
                                                 <div class="col-md-12 text-end">
@@ -163,39 +170,63 @@
     </div>
 
     <script>
-        // JS logic wahi rahega jo Create page par tha, bas 'remove-row' wala check behtar hai
         document.addEventListener('DOMContentLoaded', () => {
             const category = document.getElementById('product-category');
             const wrapper = document.getElementById('variant-wrapper');
             const unitInput = document.getElementById('product-unit');
             const moqInput = document.getElementById('product-moq');
+            const materialInput = document.getElementById('material-input');
+            const descInput = document.getElementById('product-desc');
 
             category.addEventListener('change', () => {
                 const val = category.value;
                 const finishes = document.querySelectorAll('.field-finish');
-                finishes.forEach(el => el.style.display = (val === 'blanket' ? 'none' : 'block'));
 
-                // Auto values for edit if needed (optional)
-                if (val === 'blanket') { unitInput.value = "PIECE"; moqInput.value = 2; }
-                else if (val === 'curtain') { unitInput.value = "PAIR"; moqInput.value = 1; }
-                // ... baki logic as it is
+                if (val === 'blanket') {
+                    unitInput.value = "PIECE";
+                    moqInput.value = 2;
+                    materialInput.value = "100% NEW COTTON";
+                    descInput.value = "THERMAL BLANKETS";
+                    finishes.forEach(el => el.style.display = 'none');
+                } else if (val === 'curtain') {
+                    unitInput.value = "PAIR";
+                    moqInput.value = 1;
+                    materialInput.value = "100% POLYESTER";
+                    descInput.value = "REDUCES OUTSIDE NOISE, PROVIDES THERMAL INSULATION";
+                    finishes.forEach(el => el.style.display = 'block');
+                } else if (val === 'fabric') {
+                    unitInput.value = "YARD";
+                    moqInput.value = 350;
+                    materialInput.value = "50/50% POLYESTER COTTON";
+                    descInput.value = "PLAIN WEAVE CLOSED SELVEDGE 3.4 OSY, PILLING CONTROLLED";
+                    finishes.forEach(el => el.style.display = 'block');
+                } else if (val === 'fitted_sheet') {
+                    unitInput.value = "PIECE";
+                    moqInput.value = 24;
+                    materialInput.value = "50/50% PC BLEND / SINGLE JERSEY KNITTED";
+                    descInput.value = "WOVEN OR KNITTED FITTED SHEETS";
+                    finishes.forEach(el => el.style.display = 'block');
+                }
             });
 
             document.getElementById('add-row').addEventListener('click', () => {
-                const firstRow = document.querySelector('.variant-row');
+                const rows = document.querySelectorAll('.variant-row');
+                const firstRow = rows[0];
                 const clone = firstRow.cloneNode(true);
 
-                // Clear all inputs including file inputs
                 clone.querySelectorAll('input, textarea, select').forEach(el => {
-                    el.value = '';
+                    if (el.type !== 'hidden') el.value = '';
                 });
 
-                // Remove the image preview if it exists in the clone
-                const preview = clone.querySelector('.img-thumbnail');
-                if (preview) preview.remove();
+                const existingImgField = clone.querySelector('input[name="existing_variant_images[]"]');
+                if (existingImgField) existingImgField.value = '';
+
+                const imgPreview = clone.querySelector('.mt-1');
+                if (imgPreview) imgPreview.remove();
 
                 wrapper.appendChild(clone);
             });
+
             document.addEventListener('click', e => {
                 if (e.target.closest('.remove-row')) {
                     const rows = document.querySelectorAll('.variant-row');
