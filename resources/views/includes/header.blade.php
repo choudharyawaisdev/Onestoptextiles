@@ -8,7 +8,7 @@
             </div>
 
             <div class="col-8 col-lg-3 text-center text-lg-left">
-                <a href="#" class="logo">LUXE<span>THREAD</span></a>
+                <a href="#" class="logo">OneStop<span>Textiles</span></a>
             </div>
 
             <div class="col-lg-6 d-none d-lg-block">
@@ -40,7 +40,7 @@
         <nav class="navbar navbar-expand-lg p-0">
             <div class="collapse navbar-collapse justify-content-center" id="mainNav">
                 <ul class="navbar-nav mt-3 mt-lg-2">
-                    <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url('/index') }}">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">New Arrivals</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">Collections</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">Return Policy</a></li>
@@ -62,7 +62,7 @@
         .navbar .nav-link.active,
         .navbar .nav-link:focus,
         .navbar .nav-link:hover {
-            background-color: #0d6efd;
+            background-color: #a7a8aaff;
             /* Blue */
             color: #fff !important;
         }

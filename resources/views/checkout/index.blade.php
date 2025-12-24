@@ -90,7 +90,7 @@
                                         value="{{ $addon->id }}" data-price="{{ $addon->price }}" id="addon{{ $addon->id }}"
                                         onchange="updateDetails()">
                                     <label class="form-check-label small" for="addon{{ $addon->id }}">
-                                        {{ $addon->name }} (+${{ number_format($addon->price, 2) }})
+                                        {{ $addon->title }} (+${{ number_format($addon->price, 2) }})
                                     </label>
                                 </div>
                             @endforeach
