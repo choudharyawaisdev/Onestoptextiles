@@ -26,14 +26,29 @@
             <div class="col-md-6">
                 <h1 class="product-details-title">{{ $product->name }}</h1>
                 <div class="product-price" id="displayPrice">${{ number_format($product->price, 2) }}</div>
-
-                <div id="weightDisplay" class="text-muted small mb-2" style="font-weight:500;"></div>
-
-                <p class="text-muted mb-4" id="displayDescription">{{ $product->description }}</p>
-
+                <div id="weightDisplay" class="text-muted small mb-2"></div>
+                @if($product->description)
+                    <p class="text-muted mb-4" id="displayDescription">{{ $product->description }}</p>
+                @endif
+                <ul class="product-attributes list-unstyled mb-3" style="font-weight:500;">
+                    @if($product->material)
+                        <li><strong>Material:</strong> {{ $product->material }}</li>
+                    @endif
+                    @if($product->unit)
+                        <li><strong>Unit:</strong> {{ $product->unit }}</li>
+                    @endif
+                    @if($product->color)
+                        <li><strong>Color:</strong> {{ $product->color }}</li>
+                    @endif
+                    @if($product->weight)
+                        <li><strong>Weight:</strong> {{ $product->weight }}</li>
+                    @endif
+                    @if($product->finish)
+                        <li><strong>Finish:</strong> {{ $product->finish }}</li>
+                    @endif
+                </ul>
                 <form method="POST" action="{{ route('cart.add') }}">
                     @csrf
-
                     <input type="hidden" name="product_id" value="{{ $product->id }}">
 
                     <div class="row">
@@ -117,9 +132,9 @@
                 const imgs = Array.isArray(v.images) ? v.images : JSON.parse(v.images || '[]');
                 imgs.forEach(img => {
                     thumbContainer.innerHTML += `
-                        <div class="thumb-item" onclick="updateMainImage('${storageUrl + img}')">
-                            <img src="${storageUrl + img}" style="width:50px;height:50px;object-fit:cover;">
-                        </div>`;
+                                <div class="thumb-item" onclick="updateMainImage('${storageUrl + img}')">
+                                    <img src="${storageUrl + img}" style="width:50px;height:50px;object-fit:cover;">
+                                </div>`;
                 });
             });
 
