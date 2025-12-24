@@ -15,8 +15,13 @@ return new class extends Migration
             $table->id();
             $table->string('name');                 
             $table->string('slug')->unique();
+            $table->string('category')->nullable();
             $table->string('material')->nullable();
-            $table->string('main_image')->nullable(); // main product image
+            $table->decimal('price', 10, 2);
+            $table->integer('moq')->nullable();
+            $table->string('unit')->nullable();
+            $table->string('main_image')->nullable();
+            $table->longText('description')->nullable();
             $table->timestamps();
         });
     }

@@ -8,15 +8,16 @@
                 <div class="row">
                     <div class="col-md-2 order-2 order-md-1">
                         <div class="thumb-list flex-column" id="thumbnailContainer">
-                            <div class="thumb-item"
-                                onclick="updateMainImage('{{ asset('storage/' . $product->main_image) }}')">
-                                <img src="{{ asset('storage/' . $product->main_image) }}">
-                            </div>
+                            @foreach($product->main_image as $imagePath)
+                                <div class="thumb-item" onclick="updateMainImage('{{ $imagePath }}')">
+                                    <img src="{{ $imagePath }}">
+                                </div>
+                            @endforeach
                         </div>
                     </div>
                     <div class="col-md-10 order-1 order-md-2">
                         <div class="main-img-wrapper">
-                            <img id="primaryDisplay" src="{{ asset('storage/' . $product->main_image) }}">
+                            <img id="primaryDisplay" src="{{ $product->main_image[0] ?? '' }}">
                         </div>
                     </div>
                 </div>
@@ -58,8 +59,8 @@
 
                         <div class="col-md-12 mb-4">
                             <label class="small text-uppercase font-weight-bold">Quantity</label>
-                            <input type="number" name="quantity" id="quantityInput" class="form-control rounded-0 text-center" value="1"
-                                min="1" oninput="updateDetails()">
+                            <input type="number" name="quantity" id="quantityInput"
+                                class="form-control rounded-0 text-center" value="1" min="1" oninput="updateDetails()">
                         </div>
                     </div>
 
@@ -116,9 +117,9 @@
                 const imgs = Array.isArray(v.images) ? v.images : JSON.parse(v.images || '[]');
                 imgs.forEach(img => {
                     thumbContainer.innerHTML += `
-                    <div class="thumb-item" onclick="updateMainImage('${storageUrl + img}')">
-                        <img src="${storageUrl + img}" style="width:50px;height:50px;object-fit:cover;">
-                    </div>`;
+                        <div class="thumb-item" onclick="updateMainImage('${storageUrl + img}')">
+                            <img src="${storageUrl + img}" style="width:50px;height:50px;object-fit:cover;">
+                        </div>`;
                 });
             });
 

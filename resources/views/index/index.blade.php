@@ -9,7 +9,7 @@
                 <div class="col-6 col-md-4 col-lg-3 mb-4">
                     <div class="product-card shadow-sm border-0 h-100">
                         <div class="img-wrapper overflow-hidden" style="height:300px; background:#f8f9fa;">
-                            <img src="{{ asset('storage/' . $product->main_image) }}" alt="{{ $product->name }}"
+                            <img src="{{ asset('storage/' . $product->main_image[0]) }}" alt="{{ $product->name }}"
                                 class="w-100 h-100" style="object-fit:cover;">
                         </div>
                         <div class="card-body bg-white d-flex flex-column">
@@ -25,7 +25,8 @@
                                 </span>
                             </div>
 
-                            <a href="{{ route('orderdetails', $product->id) }}" class="btn btn-dark btn-sm rounded-0 add-to-cart">
+                            <a href="{{ route('orderdetails', $product->id) }}"
+                                class="btn btn-dark btn-sm rounded-0 add-to-cart">
                                 Add to Cart
                             </a>
                         </div>
