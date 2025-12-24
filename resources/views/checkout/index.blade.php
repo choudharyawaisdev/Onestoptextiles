@@ -5,22 +5,7 @@
     <main class="container my-5">
         <div class="row">
             <div class="col-md-6 mb-4">
-                <div class="row">
-                    <div class="col-md-2 order-2 order-md-1">
-                        <div class="thumb-list flex-column" id="thumbnailContainer">
-                            @foreach($product->main_image as $imagePath)
-                                <div class="thumb-item" onclick="updateMainImage('{{ $imagePath }}')">
-                                    <img src="{{ $imagePath }}">
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                    <div class="col-md-10 order-1 order-md-2">
-                        <div class="main-img-wrapper">
-                            <img id="primaryDisplay" src="{{ $product->main_image[0] ?? '' }}">
-                        </div>
-                    </div>
-                </div>
+                <!--  -->
             </div>
 
             <div class="col-md-6">
@@ -52,6 +37,7 @@
                     <input type="hidden" name="product_id" value="{{ $product->id }}">
 
                     <div class="row">
+                        {{-- Color Selection --}}
                         <div class="col-12 mb-4">
                             <label class="small text-uppercase font-weight-bold">Color</label><br>
                             <div id="colorContainer">
@@ -65,6 +51,7 @@
                             <input type="hidden" name="selected_color" id="selectedColor">
                         </div>
 
+                        {{-- Size Selection --}}
                         <div class="col-md-12 mb-4">
                             <label class="small text-uppercase font-weight-bold">Select Size</label>
                             <select class="form-control rounded-0" name="size" id="sizePicker" onchange="updateDetails()">
@@ -72,31 +59,38 @@
                             </select>
                         </div>
 
+                        {{-- Quantity --}}
                         <div class="col-md-12 mb-4">
                             <label class="small text-uppercase font-weight-bold">Quantity</label>
                             <input type="number" name="quantity" id="quantityInput"
                                 class="form-control rounded-0 text-center" value="1" min="1" oninput="updateDetails()">
                         </div>
-                    </div>
 
-                    <div id="custom-design-form" style="display:none;">
-                        <div class="custom-notice mb-3">Selection will add Rs.10,000.00 PKR</div>
-                        <div class="row">
-                            <div class="col-6">
-                                <input type="text" name="custom_width" class="form-control" placeholder="Width">
+                        {{-- Addons --}}
+                        @if($product->addons->count() > 0)
+                            <div class="col-md-12 mb-4">
+                                <label class="small text-uppercase font-weight-bold">Select Addons</label>
+                                @foreach($product->addons as $addon)
+                                    <div class="form-check">
+                                        <input class="form-check-input addon-checkbox" type="checkbox" name="addon_ids[]"
+                                            value="{{ $addon->id }}" data-price="{{ $addon->price }}" id="addon{{ $addon->id }}"
+                                            onchange="updateDetails()">
+                                        <label class="form-check-label" for="addon{{ $addon->id }}">
+                                            {{ $addon->title }} - ${{ number_format($addon->price, 2) }}
+                                        </label>
+                                    </div>
+                                @endforeach
                             </div>
-                            <div class="col-6">
-                                <input type="text" name="custom_height" class="form-control" placeholder="Height">
-                            </div>
-                        </div>
+                        @endif
                     </div>
 
                     <div class="mt-4">
                         <button type="submit" class="btn-cart w-100" id="addToCartBtn">
-                            Add to Cart - $<span id="btnPrice">{{ number_format($product->price, 2) }}</span>
+                            Add to Cart - $<span id="btnPrice">{{ number_format($product->price + $addonTotal, 2) }}</span>
                         </button>
                     </div>
                 </form>
+
             </div>
         </div>
     </main>
@@ -105,10 +99,6 @@
         const variations = @json($product->variations);
         const storageUrl = "{{ asset('storage/') }}/";
         let currentUnitPrice = {{ $product->price }};
-
-        function updateMainImage(src) {
-            document.getElementById('primaryDisplay').src = src;
-        }
 
         function filterByColor(el, color) {
             document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
@@ -123,18 +113,15 @@
                 sizePicker.innerHTML += `<option value="${v.size}">${v.size.toUpperCase()}</option>`;
             });
 
-            sizePicker.innerHTML += '<option value="custom">Custom Design (+ Rs.10,000 PKR)</option>';
-
             const thumbContainer = document.getElementById('thumbnailContainer');
             thumbContainer.innerHTML = '';
-
             filteredVariations.forEach(v => {
                 const imgs = Array.isArray(v.images) ? v.images : JSON.parse(v.images || '[]');
                 imgs.forEach(img => {
                     thumbContainer.innerHTML += `
-                                <div class="thumb-item" onclick="updateMainImage('${storageUrl + img}')">
-                                    <img src="${storageUrl + img}" style="width:50px;height:50px;object-fit:cover;">
-                                </div>`;
+                    <div class="thumb-item" onclick="updateMainImage('${storageUrl + img}')">
+                        <img src="${storageUrl + img}" style="width:50px;height:50px;object-fit:cover;">
+                    </div>`;
                 });
             });
 
@@ -152,32 +139,33 @@
             const size = document.getElementById('sizePicker').value;
             const color = document.getElementById('selectedColor').value;
             const qty = parseInt(document.getElementById('quantityInput').value) || 1;
-            const customForm = document.getElementById('custom-design-form');
             const weightBox = document.getElementById('weightDisplay');
 
-            if (size === 'custom') {
-                customForm.style.display = 'block';
-                currentUnitPrice = {{ $product->price }};
-                weightBox.innerText = '';
-            } else {
-                customForm.style.display = 'none';
-                const variation = variations.find(v => v.size === size && v.color === color);
+            let price = {{ $product->price }};
 
+            if (size) {
+                const variation = variations.find(v => v.size === size && v.color === color);
                 if (variation) {
-                    currentUnitPrice = parseFloat(variation.price);
-                    document.getElementById('displayPrice').innerText = '$' + currentUnitPrice.toFixed(2);
+                    price = parseFloat(variation.price);
+                    document.getElementById('displayPrice').innerText = '$' + price.toFixed(2);
                     document.getElementById('displayDescription').innerText = variation.description || "{{ $product->description }}";
                     weightBox.innerText = variation.weight ? 'Weight: ' + variation.weight + 'kg' : '';
                 }
             }
 
-            document.getElementById('btnPrice').innerText = (currentUnitPrice * qty).toFixed(2);
+            // Add addon prices
+            document.querySelectorAll('.addon-checkbox:checked').forEach(cb => {
+                price += parseFloat(cb.dataset.price);
+            });
+
+            document.getElementById('btnPrice').innerText = (price * qty).toFixed(2);
         }
 
         window.onload = () => {
             const firstSwatch = document.querySelector('.color-swatch');
             if (firstSwatch) firstSwatch.click();
         };
+
     </script>
 
 @endsection

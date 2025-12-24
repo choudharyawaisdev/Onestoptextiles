@@ -26,4 +26,11 @@ class Product extends Model
         return $this->hasMany(ProductVariation::class);
     }
     
+    // Product.php
+    public function addons()
+    {
+        return $this->belongsToMany(AddOn::class, 'addon_product', 'product_id', 'addon_id');
+    }
+
+
 }

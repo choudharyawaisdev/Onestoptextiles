@@ -9,9 +9,11 @@ class CartController extends Controller
 {
     public function OrderDetails($id)
     {
-        $product = Product::with('variations')->findOrFail($id);
-        return view('checkout.index', compact('product'));
+        $product = Product::with('variations', 'addons')->findOrFail($id);
+        $addonTotal = $product->addons->sum('price');
+        return view('checkout.index', compact('product', 'addonTotal'));
     }
+
 
      public function success(Request $request)
     {

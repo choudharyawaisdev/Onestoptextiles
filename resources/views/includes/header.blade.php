@@ -49,4 +49,22 @@
             </div>
         </nav>
     </div>
+    <style>
+        /* Navbar link base style */
+        .navbar .nav-link {
+            padding: 10px 18px;
+            border-radius: 4px;
+            color: #000;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Active & hover state */
+        .navbar .nav-link.active,
+        .navbar .nav-link:focus,
+        .navbar .nav-link:hover {
+            background-color: #0d6efd;
+            /* Blue */
+            color: #fff !important;
+        }
+    </style>
 </header>
