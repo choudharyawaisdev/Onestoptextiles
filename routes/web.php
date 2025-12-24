@@ -15,6 +15,12 @@ Route::get("/index", [DashboardController::class,"index"])->name("home");
 Route::get("/order/details/{id}", [CartController::class,"OrderDetails"])->name("orderdetails");
 Route::get("/success", [CartController::class,"success"])->name("success");
 Route::get("/checkout", [CartController::class,"checkout"])->name("checkout");
+Route::post('/add-to-cart', [CartController::class, 'addToCart'])->name('cart.add');
+
+Route::get('/clear-cart', function () {
+    session()->forget('cart');
+    return 'Cart cleared';
+});
 
 
 Route::get('/', function () {

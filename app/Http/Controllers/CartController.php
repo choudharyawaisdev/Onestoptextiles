@@ -13,13 +13,38 @@ class CartController extends Controller
         return view('checkout.index', compact('product'));
     }
 
-     public function checkout(Request $request)
-    {
-        return view('checkout.checkout');
-    }
-
      public function success(Request $request)
     {
         return view('checkout.success');
     }
+
+    public function addToCart(Request $request)
+    {
+        $product = Product::findOrFail($request->product_id);
+
+        $cart = session()->get('cart', []);
+
+        $cart[] = [
+            'product_id' => $product->id,
+            'name'       => $product->name,
+            'image'      => $product->main_image,
+            'color'      => $request->selected_color,
+            'size'       => $request->size,
+            'weight'     => $request->weight,
+            'quantity'   => $request->quantity,
+            'price'      => $request->price,
+        ];
+
+        session()->put('cart', $cart);
+
+        return redirect()->route('checkout');
+    }
+
+
+    public function checkout()
+    {
+        $cart = session()->get('cart', []);
+        return view('checkout.checkout', compact('cart'));
+    }
+
 }
