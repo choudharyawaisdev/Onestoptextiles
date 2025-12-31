@@ -18,12 +18,13 @@
                             <div class="row g-3 mb-4">
                                 <div class="col-md-12">
                                     <label class="form-label fw-bold">Select Product Category</label>
-                                    <select name="category" id="product-category" class="form-select" required>
+                                    <select name="category_id" id="product-category" class="form-select" required>
                                         <option value="" disabled selected>Choose product category...</option>
-                                        <option value="blanket">THERMAL BLANKETS</option>
-                                        <option value="curtain">BLACK OUT CURTAINS</option>
-                                        <option value="fabric">WOVEN FABRIC ROLLS</option>
-                                        <option value="fitted_sheet">FITTED SHEETS</option>
+                                        @foreach($categories as $category)
+                                            <option value="{{ $category->id }}" data-slug="{{ $category->slug }}">
+                                                {{ strtoupper($category->title) }}
+                                            </option>
+                                        @endforeach
                                     </select>
                                 </div>
                                 <div class="col-md-4">
@@ -161,68 +162,110 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+
             const category = document.getElementById('product-category');
             const wrapper = document.getElementById('variant-wrapper');
             const unitInput = document.getElementById('product-unit');
             const moqInput = document.getElementById('product-moq');
             const materialInput = document.getElementById('material-input');
             const descInput = document.getElementById('product-desc');
+            const addRowBtn = document.getElementById('add-row');
 
+            if (!category || !wrapper) return;
+
+            /* ======================
+               CATEGORY CHANGE
+            ====================== */
             category.addEventListener('change', () => {
                 wrapper.style.display = 'block';
-                const val = category.value;
 
-                // Default: Hide special fields
+                const selected = category.options[category.selectedIndex];
+                const val = selected ? selected.dataset.slug : null;
+
+                // Hide finish fields by default
                 document.querySelectorAll('.field-finish').forEach(el => el.style.display = 'none');
 
-                if (val === 'blanket') {
-                    unitInput.value = "PIECE";
-                    moqInput.value = 2;
-                    materialInput.value = "100% NEW COTTON";
-                    descInput.value = "THERMAL BLANKETS";
-                } else if (val === 'curtain') {
-                    unitInput.value = "PAIR";
-                    moqInput.value = 1;
-                    materialInput.value = "100% POLYESTER";
-                    descInput.value = "REDUCES OUTSIDE NOISE, PROVIDES THERMAL INSULATION";
-                    document.querySelectorAll('.field-finish').forEach(el => el.style.display = 'block');
-                } else if (val === 'fabric') {
-                    unitInput.value = "YARD";
-                    moqInput.value = 350;
-                    materialInput.value = "50/50% POLYESTER COTTON";
-                    descInput.value = "PLAIN WEAVE CLOSED SELVEDGE 3.4 OSY, PILLING CONTROLLED";
-                    document.querySelectorAll('.field-finish').forEach(el => el.style.display = 'block');
-                } else if (val === 'fitted_sheet') {
-                    unitInput.value = "PIECE";
-                    moqInput.value = 24;
-                    materialInput.value = "50/50% PC BLEND / SINGLE JERSEY KNITTED";
-                    descInput.value = "WOVEN OR KNITTED FITTED SHEETS";
-                    document.querySelectorAll('.field-finish').forEach(el => el.style.display = 'block');
+                if (!val) return;
+
+                const presets = {
+                    blanket: {
+                        unit: "PIECE",
+                        moq: 2,
+                        material: "100% NEW COTTON",
+                        desc: "THERMAL BLANKETS",
+                        finish: false
+                    },
+                    curtain: {
+                        unit: "PAIR",
+                        moq: 1,
+                        material: "100% POLYESTER",
+                        desc: "REDUCES OUTSIDE NOISE, PROVIDES THERMAL INSULATION",
+                        finish: true
+                    },
+                    fabric: {
+                        unit: "YARD",
+                        moq: 350,
+                        material: "50/50% POLYESTER COTTON",
+                        desc: "PLAIN WEAVE CLOSED SELVEDGE 3.4 OSY, PILLING CONTROLLED",
+                        finish: true
+                    },
+                    fitted_sheet: {
+                        unit: "PIECE",
+                        moq: 24,
+                        material: "50/50% PC BLEND / SINGLE JERSEY KNITTED",
+                        desc: "WOVEN OR KNITTED FITTED SHEETS",
+                        finish: true
+                    }
+                };
+
+                if (presets[val]) {
+                    unitInput.value = presets[val].unit;
+                    moqInput.value = presets[val].moq;
+                    materialInput.value = presets[val].material;
+                    descInput.value = presets[val].desc;
+
+                    if (presets[val].finish) {
+                        document.querySelectorAll('.field-finish').forEach(el => el.style.display = 'block');
+                    }
                 }
             });
 
-            document.getElementById('add-row').addEventListener('click', () => {
-                const firstRow = document.querySelector('.variant-row');
+            /* ======================
+               ADD VARIANT
+            ====================== */
+            addRowBtn.addEventListener('click', () => {
+                const firstRow = wrapper.querySelector('.variant-row');
+                if (!firstRow) return;
+
                 const clone = firstRow.cloneNode(true);
-                // Clear inputs in the clone
+
                 clone.querySelectorAll('input, textarea, select').forEach(el => {
-                    if (el.type !== 'file') {
+                    if (el.type === 'file') {
+                        el.value = null;
+                    } else {
                         el.value = '';
                     }
                 });
+
                 wrapper.appendChild(clone);
             });
 
+            /* ======================
+               REMOVE VARIANT (FIXED)
+            ====================== */
             document.addEventListener('click', e => {
-                if (e.target.classList.contains('remove-row')) {
-                    const rows = document.querySelectorAll('.variant-row');
-                    if (rows.length > 1) {
-                        e.target.closest('.variant-row').remove();
-                    } else {
-                        alert("At least one variant is required.");
-                    }
+                const btn = e.target.closest('.remove-row');
+                if (!btn) return;
+
+                const rows = wrapper.querySelectorAll('.variant-row');
+
+                if (rows.length > 1) {
+                    btn.closest('.variant-row').remove();
+                } else {
+                    alert("At least one variant is required.");
                 }
             });
+
         });
     </script>
 @endsection

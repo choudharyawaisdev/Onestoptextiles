@@ -32,5 +32,9 @@ class Product extends Model
         return $this->belongsToMany(AddOn::class, 'addon_product', 'product_id', 'addon_id');
     }
 
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
 
 }
